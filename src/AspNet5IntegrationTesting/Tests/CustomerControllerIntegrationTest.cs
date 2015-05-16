@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using AspNet5IntegrationTesting.Entities;
 using Microsoft.AspNet.Builder;
@@ -17,10 +18,17 @@ namespace AspNet5IntegrationTesting.Tests
         {
             var config = new Configuration();
             config.AddCommandLine(new[] { "--server.urls", "http://localhost:5001" });
+            
+            var serverFactoryLocation = string.Empty;
+            if(!IsMono()) {
+                serverFactoryLocation = "Microsoft.AspNet.Server.WebListener";
+            } else {
+                serverFactoryLocation = "Kestrel";
+            }
             var context = new HostingContext()
             {
                 Configuration = config,
-                ServerFactoryLocation = "Microsoft.AspNet.Server.WebListener",
+                ServerFactoryLocation = serverFactoryLocation,
                 ApplicationName = "AspNet5IntegrationTesting",
                 StartupMethods = new StartupMethods(builder => builder.UseMvc(), services =>
                 {
@@ -38,6 +46,12 @@ namespace AspNet5IntegrationTesting.Tests
 
                 Assert.Equal(customers[0].CompanyName,"PDMLab");
             }
-        } 
+        }
+        
+        public static bool IsMono()
+        {
+            return Type.GetType("Mono.Runtime") != null;
+        }
+ 
     }
 }
